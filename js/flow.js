@@ -39,7 +39,7 @@ function thisWeek() {
 function home(el) {
   const P = S.profile, G = GOALS[P.goal], wk = weekKey(), tw = thisWeek(), met = S.twelve.filter(t => t.met).length;
   const stale = [...S.friends].sort((a, b) => new Date(a.last) - new Date(b.last)).slice(0, 3);
-  el.innerHTML = `<h1>${greeting()} 👋</h1><p class="mute">Your focus: <b>${G.ic} ${G.label}</b> · <a href="#/settings">change</a></p>
+  el.innerHTML = `<h1>${greeting()}</h1><p class="mute">Your focus: <b>${G.ic} ${G.label}</b> · <a href="#/settings">change</a></p>
     <div class="card hero"><span class="pill">This week, do one thing</span><p style="margin-top:8px">${esc(tw.txt)}</p>
       <div class="row" style="margin-top:10px"><a class="btn" href="${tw.href}" style="flex:none">${tw.cta}</a><label class="check" style="flex:none"><input type="checkbox" id="wd" ${P.done[wk] ? 'checked' : ''}> Done</label></div></div>
     <h3>Recommended for you</h3>${G.tools.map(id => { const t = T(id); return `<a class="card tool" href="#/t/${t.id}"><span class="n">${SECTIONS[t.sec].ic}</span><span><h3 style="margin:0">${t.title}</h3><p>${t.sub}</p></span></a>`; }).join('')}
