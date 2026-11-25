@@ -33,13 +33,13 @@ tool({ id: 'intro', sec: 'scaling', title: 'Double-opt-in intro', sub: 'Both say
   render(el) {
     const paint = () => {
       el.innerHTML = `<div class="card"><div class="row"><div><label>Friend A</label><select id="ia">${friendOpts('f2')}</select></div><div><label>Friend B</label><select id="ib">${friendOpts('f10')}</select></div></div><label>Why they should meet</label><input id="iw" placeholder="both obsessed with bread and building startups"><button class="btn" id="is">Ask both separately (mock)</button></div>
-        ${S.intros.map((x, i) => { const a = F(x.a), b = F(x.b), ok = x.ya && x.yb; return `<div class="card"><h3>${esc(first(a))} ↔ ${esc(first(b))}</h3><p class="mute">${esc(x.why)}</p>
+        ${S.intros.map((x, i) => { const a = F(x.a), b = F(x.b), ok = x.ya && x.yb; return `<div class="card"><h3>${esc(first(a))} ↔ ${esc(first(b))}</h3><p class="mute">${esc(x.why || 'No reason given')}</p>
           <ul class="list"><li>${esc(a.name)}: <button class="btn ${x.ya ? 'g' : 's'} y" data-i="${i}" data-w="ya">${x.ya ? '✓ said yes' : 'Simulate yes'}</button></li><li>${esc(b.name)}: <button class="btn ${x.yb ? 'g' : 's'} y" data-i="${i}" data-w="yb">${x.yb ? '✓ said yes' : 'Simulate yes'}</button></li></ul>
           ${ok ? `<div id="ix${i}"></div>` : '<p class="mute">The group intro unlocks only when both say yes.</p>'}</div>`; }).join('')}`;
-      $('#is').onclick = () => { if ($('#ia').value === $('#ib').value) return toast('Pick two different friends'); const a = F($('#ia').value), b = F($('#ib').value), w = $('#iw').value || 'I think you two would get along';
+      $('#is').onclick = () => { if ($('#ia').value === $('#ib').value) return toast('Pick two different friends'); const a = F($('#ia').value), b = F($('#ib').value), w = $('#iw').value.trim().replace(/[.!]+$/, '');
         S.intros.unshift({ a: a.id, b: b.id, why: w, ya: false, yb: false }); save(); toast(`Sent “want an intro?” to ${first(a)} and ${first(b)} separately (mock)`); paint(); };
       $$('.y', el).forEach(btn => btn.onclick = () => { S.intros[btn.dataset.i][btn.dataset.w] = true; save(); paint(); });
-      S.intros.forEach((x, i) => { const n = $('#ix' + i); if (n) { const a = F(x.a), b = F(x.b); draftBox(n, () => [`${first(a)}, meet ${first(b)}! ${first(b)}, meet ${first(a)}! You both said yes, so here we are 🙂 Why I think you'll click: ${x.why}. I'll let you two take it from here.`, `Happy to finally connect you two: ${first(a)} (${a.city}) and ${first(b)} (${b.city}). The reason: ${x.why}. Coffee's on whoever's closer!`], { to: () => `${first(a)} & ${first(b)}` }); } });
+      S.intros.forEach((x, i) => { const n = $('#ix' + i); if (n) { const a = F(x.a), b = F(x.b); draftBox(n, () => [`${first(a)}, meet ${first(b)}! ${first(b)}, meet ${first(a)}! You both said yes, so here we are 🙂${x.why ? ` Why I think you'll click: ${x.why}.` : ''} I'll let you two take it from here.`, `Happy to finally connect you two: ${first(a)} (${a.city}) and ${first(b)} (${b.city}). ${x.why ? `The reason: ${x.why}. ` : ''}Coffee's on whoever's closer!`], { to: () => `${first(a)} & ${first(b)}` }); } });
     };
     paint();
   } });

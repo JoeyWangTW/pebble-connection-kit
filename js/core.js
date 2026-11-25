@@ -5,18 +5,18 @@ const ago = d => new Date(Date.now() - d * DAY).toISOString().slice(0, 10);
 const ahead = d => new Date(Date.now() + d * DAY).toISOString().slice(0, 10);
 
 const SEED_FRIENDS = [
-  ['Mei-Ling Chen', 'Taipei', 3, 'you always order extra stinky tofu'],
+  ['Mei-Ling Chen', 'Taipei', 3, 'your extra-stinky-tofu order'],
   ['Jordan Okafor', 'Seattle', 41, 'your sunrise runs up Mount Si'],
-  ['Priya Raman', 'San Francisco', 12, 'you rewatch Spirited Away every winter'],
+  ['Priya Raman', 'San Francisco', 12, 'your yearly Spirited Away rewatch'],
   ['Kenji Watanabe', 'Tokyo', 210, 'the time you taught me tamagoyaki (badly)'],
   ['Sofia Alvarez', 'New York', 95, 'the pigeon incident'],
-  ['Wei-Ting Lin', 'Taipei', 860, 'you still owe me a bubble tea'],
-  ['Marcus Bell', 'Seattle', 7, 'how much you hate losing at Catan'],
+  ['Wei-Ting Lin', 'Taipei', 860, 'the bubble tea you still owe me'],
+  ['Marcus Bell', 'Seattle', 7, 'your hatred of losing at Catan'],
   ['Aiko Suzuki', 'Tokyo', 30, 'the wobbly mug you made me'],
   ['Daniel Kim', 'San Francisco', 1200, 'how you mentored me through my first launch'],
-  ['Amara Nwosu', 'New York', 18, 'your favorite song is “Golden Hour”'],
+  ['Amara Nwosu', 'New York', 18, 'your love of “Golden Hour”'],
   ['Lucas Moreau', 'San Francisco', 60, 'your sourdough evangelism'],
-  ['Hana Park', 'New York', 400, 'we both quit that dance class after week 3'],
+  ['Hana Park', 'New York', 400, 'the dance class we both quit after week 3'],
 ];
 const COLORS = ['#d9825b', '#7fa58b', '#e7b75f', '#9b8bc4', '#c9707a', '#5f9fb0'];
 
@@ -28,11 +28,15 @@ function seed() {
     plans: [{ id: 'p1', fid: 'f4', act: 'Brooklyn bookstore crawl', date: ahead(75), history: [], done: false }],
     rituals: [], roles: { f0: 'Core', f2: 'Core', f6: 'Fun crew', f8: 'Helpers' },
     zines: [], trips: [], intros: [], favors: {}, circles: [],
-    ai: { principle: true, log: [] }, swaps: {},
+    ai: { principle: true, log: [] }, swaps: {}, v: 2,
+    profile: { onboarded: false, goal: 'old', core: 5, added: [], done: {} },
   };
 }
 let S;
 try { S = JSON.parse(localStorage.getItem(KEY)) || seed(); } catch { S = seed(); }
+// v2 migration: seed notes became noun phrases so drafts read naturally
+if ((S.v || 1) < 2) { S.friends.forEach(f => { const i = +f.id.slice(1); if (/^f\d+$/.test(f.id) && SEED_FRIENDS[i]) f.note = SEED_FRIENDS[i][3]; }); S.v = 2; }
+S.profile = S.profile || { onboarded: false, goal: 'old', core: 5, added: [], done: {} };
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 save();
 

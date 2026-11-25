@@ -3,15 +3,17 @@ tool({ id: 'pebble', sec: 'sustaining', title: 'Pebble helper', sub: '“This re
   why: 'Like penguins giving pebbles, small low-effort signals that you thought of someone keep a tie warm. Liu, Rim, Min & Min (2022) showed people consistently underestimate how much a surprise check-in is appreciated. Naming a specific detail shows you remember them, which makes people feel understood.',
   render(el, q) {
     el.innerHTML = `<div class="card"><label>Friend</label><select id="pf">${friendOpts(q.f)}</select><label>What reminded you?</label><div class="chips" id="pt"></div>
-      <label>The detail</label><input id="pd" placeholder="e.g. a ramen shop opened on my street"><label>Memory flex: one specific thing you remember about them</label><input id="pm"><div id="db"></div></div>`;
+      <label>The detail</label><input id="pd" placeholder="e.g. a new ramen shop on my street (optional)"><label>Memory flex: one specific thing you remember (optional)</label><input id="pm" placeholder="e.g. the pigeon incident"><div id="db"></div></div>`;
     const setMem = () => $('#pm').value = F($('#pf').value).note;
     setMem();
     let box;
     const g = chips($('#pt'), ['a song', 'a place', 'a memory', 'a link'], 'a place', () => box.refresh());
-    const V = () => { const f = F($('#pf').value), d = $('#pd').value || 'something I came across today', m = $('#pm').value, t = g();
-      return [`Hey ${first(f)}! ${cap(t)} made me think of you today: ${d}. Of course I thought of ${lc(m)}. Hope you're doing well 🙂`,
-        `This made me think of you: ${t}, ${d}. It brought back ${lc(m)}. No need to reply, just wanted you to know you crossed my mind.`,
-        `${first(f)}!! ${d}. Instantly thought of you. I still remember ${lc(m)} 😄. How are you these days?`]; };
+    const LEAD = { 'a song': [d => `“${d}” came on today`, 'A song came on today'], 'a place': [d => `Ended up at ${d} today`, 'I walked past a spot today'],
+      'a memory': [d => `I was remembering ${d} today`, 'An old memory popped up today'], 'a link': [d => `I came across ${d}`, 'I came across something online'] };
+    const V = () => { const f = F($('#pf').value), d = $('#pd').value.trim().replace(/[.!]+$/, ''), m = $('#pm').value.trim().replace(/[.!]+$/, ''), L = LEAD[g()], lead = d ? L[0](d) : L[1];
+      return [`Hey ${first(f)}! ${lead} and immediately thought of you.${m ? ` Still smiling about ${m}.` : ''} Hope you're doing well 🙂`,
+        `Quick one: ${lead}, and it made me think of you.${m ? ` It brought back ${m}.` : ''} No need to reply, just wanted you to know you crossed my mind.`,
+        `${first(f)}!! ${lead}, and you were the first person I thought of${m ? ` (${m} still makes me laugh)` : ''}. How are you these days?`]; };
     box = draftBox($('#db'), V, { to: () => F($('#pf').value).name, onSend: () => touch($('#pf').value) });
     $('#pf').onchange = () => { setMem(); box.refresh(); };
     $('#pd').oninput = $('#pm').oninput = () => box.refresh();
@@ -29,9 +31,9 @@ tool({ id: 'dormant', sec: 'sustaining', title: 'Dormant-tie reconnect wizard', 
     const ch = chips($('#dc'), ['Text', 'Voice note', 'Call', 'Video'], 'Voice note', v => { $('#dn').textContent = v === 'Text' ? 'Text is fine! But hearing your voice tends to feel warmer and more connecting than text (Kumar & Epley, 2021). Maybe try a voice note?' : 'Nice: voices build more connection than text, and it’s less awkward than people expect.'; R(); });
     $('#dn').textContent = 'Nice: voices build more connection than text, and it’s less awkward than people expect.';
     const md = chips($('#dm'), ['Catching up', 'Give first: “How can I help?”'], 'Catching up', R);
-    box = draftBox($('#db'), () => { const f = F($('#df').value), yrs = Math.max(1, Math.round(daysSince(f.last) / 365)), give = md().startsWith('Give'), vo = ch() !== 'Text' ? '[Script for your ' + ch().toLowerCase() + '] ' : '';
-      return give ? [`${vo}Hi ${first(f)}, it's been ${yrs > 1 ? yrs + ' years' : 'a while'}! I was thinking about ${lc(f.note)}. Is there anything you're working on where I could help? An intro, a second pair of eyes, anything.`, `${vo}${first(f)}! Long time. I've always appreciated you, and I'd like to be useful back. Anything on your plate right now where I could lend a hand?`]
-        : [`${vo}Hi ${first(f)}! It's been ${yrs > 1 ? yrs + ' years' : 'way too long'}. I was just thinking about ${lc(f.note)} and wanted to say hi. How's life in ${f.city}?`, `${vo}${first(f)}, random but sincere: I thought of you today and realized how long it's been. Would love to hear what you're up to. Coffee or a quick call sometime?`]; },
+    box = draftBox($('#db'), () => { const f = F($('#df').value), yrs = Math.max(1, Math.round(daysSince(f.last) / 365)), give = md().startsWith('Give'), vo = ch() !== 'Text' ? `(${ch()} script: say it your way)\n` : '', note = f.note ? `I was just thinking about ${f.note} and` : 'You crossed my mind today and I';
+      return give ? [`${vo}Hi ${first(f)}, it's been ${yrs > 1 ? yrs + ' years' : 'a while'}! ${f.note ? `I was thinking about ${f.note}. ` : ''}Is there anything you're working on where I could help? An intro, a second pair of eyes, anything.`, `${vo}${first(f)}! Long time. I've always appreciated you, and I'd like to be useful back. Anything on your plate right now where I could lend a hand?`]
+        : [`${vo}Hi ${first(f)}! It's been ${yrs > 1 ? yrs + ' years' : 'way too long'}. ${note} wanted to say hi. How's life in ${f.city}?`, `${vo}${first(f)}, random but sincere: I thought of you today and realized how long it's been. Would love to hear what you're up to. Coffee or a quick call sometime?`]; },
       { to: () => F($('#df').value).name, onSend: () => { touch($('#df').value); toast('Sent! Most people are glad they reached out.'); } });
     $('#df').onchange = R;
   } });
@@ -109,9 +111,10 @@ tool({ id: 'repair', sec: 'sustaining', title: 'Repair helper', sub: 'Raise a sm
   why: 'Gottman’s research (e.g., Gottman & Levenson, 1999) shows that it isn’t conflict that predicts a relationship breaking down. It is failed repair. Gentle start-ups (“I felt…” instead of “You always…”) make it far easier to hear. Repairs done well often leave people closer than before.',
   render(el) {
     el.innerHTML = `<div class="card"><p>Repair is a way to get <b>closer</b>, not a confrontation.</p><label>With</label><select id="xf">${friendOpts()}</select><label>What happened (just the facts)</label><input id="xa" placeholder="you canceled dinner last-minute twice"><label>How it felt</label><input id="xb" placeholder="a bit unimportant"><label>What I'd like</label><input id="xc" placeholder="a heads-up earlier if plans change"><div id="db"></div></div>`;
-    const V = () => { const f = F($('#xf').value), a = $('#xa').value || '[what happened]', b = $('#xb').value || '[feeling]', c = $('#xc').value || '[request]';
-      return [`Hey ${first(f)}, can I share something small? I really value us, which is why I want to say it. When ${a}, I felt ${b}. It'd mean a lot if ${c}. Totally open to hearing your side too.`,
-        `${first(f)}, I'd rather tell you than let it sit: ${a}, and I ended up feeling ${b}. Not a big deal, but could we try ${c}? How does that land for you?`]; };
+    const V = () => { const f = F($('#xf').value), [a, b, c] = ['#xa', '#xb', '#xc'].map(i => $(i).value.trim().replace(/[.!]+$/, ''));
+      const what = a ? `When ${a}` : 'Something small has been on my mind', feel = b ? `, I felt ${b}.` : a ? ', it stuck with me.' : '.', ask = c ? `It'd mean a lot if ${c}.` : 'Could we talk about it sometime?';
+      return [`Hey ${first(f)}, can I share something? I really value us, which is why I want to say it. ${what}${feel} ${ask} Totally open to hearing your side too.`,
+        `${first(f)}, I'd rather tell you than let it sit. ${what}${feel} Not a big deal, but ${c ? `could we try this: ${c}?` : 'I wanted to clear the air.'} How does that land for you?`]; };
     const box = draftBox($('#db'), V, { to: () => F($('#xf').value).name });
     $$('input,select', el).forEach(i => i.oninput = i.onchange = () => box.refresh());
   } });
